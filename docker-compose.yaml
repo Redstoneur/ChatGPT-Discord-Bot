@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  chatGPT-discord-bot-db:
+    image: mysql:latest
+    restart: always
+    volumes:
+      - chatGPT-discord-bot-db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+      - chatGPT-discord-bot-network
+    hostname: chatGPT-discord-bot-db
+
+
+  chatGPT-discord-bot-phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    restart: always
+    environment:
+      PMA_HOST: chatGPT-discord-bot-db
+      PMA_PORT: 3306
+    ports:
+      - "2109:80"
+    networks:
+      - chatGPT-discord-bot-network
+    depends_on:
+      - chatGPT-discord-bot-db
+    hostname: chatGPT-discord-bot-phpmyadmin
+
+  chatGPT-discord-bot:
+    image: chatgpt-discord-bot
+    build: ./App
+    environment:
+        - MYSQL_HOST=chatGPT-discord-bot-db
+        - MYSQL_PORT=3306
+        - OPENAI_API_KEY=${OPENAI_API_KEY}
+        - MYSQL_USER=${MYSQL_USER}
+        - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+        - MYSQL_DB_NAME=${MYSQL_DB_NAME}
+        - OPENAI_ENGINE=${OPENAI_ENGINE}
+        - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+    networks:
+      - chatGPT-discord-bot-network
+    depends_on:
+      - chatGPT-discord-bot-db
+      - chatGPT-discord-bot-phpmyadmin
+    hostname: chatGPT-discord-bot
+
+volumes:
+    chatGPT-discord-bot-db:
+
+networks:
+  chatGPT-discord-bot-network:
+    driver: bridge
