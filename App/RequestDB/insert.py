@@ -5,7 +5,7 @@ def insertUser(discord_user_id: int, username: str) -> str:
     :param username: name of the user
     :return: str of the request
     """
-    return f"INSERT INTO users (discord_id, username) VALUES ({discord_user_id}, '{username}')"
+    return f"INSERT INTO users (discord_user_id, username) VALUES ({discord_user_id}, '{username}')"
 
 
 def insertServer(discord_server_id: int, server_name: str) -> str:
@@ -15,7 +15,7 @@ def insertServer(discord_server_id: int, server_name: str) -> str:
     :param server_name: name of the server
     :return: str of the request
     """
-    return f"INSERT INTO servers (discord_id, server_name) VALUES ({discord_server_id}, '{server_name}')"
+    return f"INSERT INTO servers (discord_server_id, server_name) VALUES ({discord_server_id}, '{server_name}')"
 
 
 def insertUserInServer(discord_server_id: int, discord_user_id: int) -> str:
@@ -25,7 +25,7 @@ def insertUserInServer(discord_server_id: int, discord_user_id: int) -> str:
     :param discord_user_id: id of the user
     :return: str of the request
     """
-    return f"INSERT INTO inservers (server_id, user_id) VALUES ({discord_server_id}, {discord_user_id})"
+    return f"INSERT INTO inservers (discord_server_id, discord_user_id) VALUES ({discord_server_id}, {discord_user_id})"
 
 def insertChannel(discord_channel_id: int, channel_name: str, discord_server_id: int) -> str:
     """
@@ -35,7 +35,7 @@ def insertChannel(discord_channel_id: int, channel_name: str, discord_server_id:
     :param discord_server_id: id of the server
     :return: str of the request
     """
-    return f"INSERT INTO channels (discord_id, channel_name, server_id) VALUES ({discord_channel_id}, '{channel_name}', {discord_server_id})"
+    return f"INSERT INTO channels (discord_channel_id, channel_name, discord_server_id) VALUES ({discord_channel_id}, '{channel_name}', {discord_server_id})"
 
 
 def insertConversation_history(discord_user_id: int, discord_channel_id: int, message: str, response: str) -> str:
@@ -46,7 +46,7 @@ def insertConversation_history(discord_user_id: int, discord_channel_id: int, me
     :param message: message of the user
     :return: str of the request
     """
-    return f"INSERT INTO conversation_history (user_id, channel_id, message, response) VALUES ({discord_user_id}, {discord_channel_id}, '{message}', '{response}')"
+    return f"INSERT INTO conversation_history (discord_user_id, discord_channel_id, message, response) VALUES ({discord_user_id}, {discord_channel_id}, '{message}', '{response}')"
 
 
 

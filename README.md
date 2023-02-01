@@ -33,6 +33,7 @@ MYSQL_PASSWORD=
 MYSQL_DB_NAME=
 OPENAI_ENGINE=
 DISCORD_BOT_TOKEN=
+PREFIX_COMMAND=
 ```
 
 Exécutez la commande suivante pour démarrer le projet avec Docker Compose:
