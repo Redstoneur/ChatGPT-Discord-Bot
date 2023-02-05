@@ -36,6 +36,24 @@ DISCORD_BOT_TOKEN=
 PREFIX_COMMAND=
 ```
 
+Complétez le fichier Bad_Word.json avec les mots que vous souhaitez que le bot filtre.
+
+Example pour la langue française :
+
+```json
+{
+  "fr": {
+    "Bad_Words_List": [
+      "mot1",
+      "mot2",
+      "mot3"
+    ],
+    "Country": "France",
+    "Language": "français"
+  }
+}
+```
+
 Exécutez la commande suivante pour démarrer le projet avec Docker Compose:
 
 ```bash

@@ -4,6 +4,9 @@ import mysql.connector
 import openai
 from typing import Tuple
 
+# Text_Analizor
+from Text_Analizor import *
+
 # RequestDB
 from RequestDB import *
 from RequestDB.insert import *
@@ -99,12 +102,15 @@ RequestsServerSQL(requests="""
 CREATE TABLE if not exists users
 (
     discord_user_id BIGINT PRIMARY KEY NOT NULL,
-    username        VARCHAR(255)       NOT NULL
+    username        VARCHAR(255)       NOT NULL,
+    add_date        DATETIME           NOT NULL default CURRENT_TIMESTAMP,
+    update_date     DATETIME           NOT NULL default CURRENT_TIMESTAMP
 );
 CREATE TABLE if not exists servers
 (
     discord_server_id BIGINT PRIMARY KEY NOT NULL,
-    server_name       VARCHAR(255)       NOT NULL
+    server_name       VARCHAR(255)       NOT NULL,
+    add_date          DATETIME           NOT NULL default CURRENT_TIMESTAMP
 );
 CREATE TABLE if not exists inservers
 (
@@ -116,7 +122,8 @@ CREATE TABLE if not exists channels
 (
     discord_channel_id BIGINT PRIMARY KEY NOT NULL,
     channel_name       VARCHAR(255)       NOT NULL,
-    discord_server_id          VARCHAR(255)    NOT NULL REFERENCES servers (discord_server_id) ON DELETE CASCADE
+    discord_server_id          VARCHAR(255)    NOT NULL REFERENCES servers (discord_server_id) ON DELETE CASCADE,
+    add_date            DATETIME           NOT NULL default CURRENT_TIMESTAMP
 );
 CREATE TABLE if not exists conversation_history
 (
@@ -132,9 +139,141 @@ CREATE TABLE if not exists conversation_history
 """)
 
 
+# legacy
+def Terms_and_Conditions() -> discord.Embed:
+    """
+    Terms and conditions
+    :return: discord.Embed
+    """
+    terms_and_conditions: discord.Embed = discord.Embed(title="Conditions d'utilisation",
+                                                        description="Pour l'utilisation d'un bot Discord permettant "
+                                                                    "de communiquer avec ChatGPT",
+                                                        color=discord.Color.red())
+    terms_and_conditions.add_field(name="1. Utilisation personnelle uniquement",
+                                   value="Ce bot est destiné à un usage personnel uniquement et est interdit pour un "
+                                         "usage commercial.",
+                                   inline=False)
+    terms_and_conditions.add_field(name="2. Responsabilité du contenu",
+                                   value="Vous êtes responsable de tout contenu que vous publiez ou transmettez via "
+                                         "ce bot.",
+                                   inline=False)
+    terms_and_conditions.add_field(name="3. Contenu répréhensible",
+                                   value="Vous vous engagez à ne pas publier ou transmettre de contenu illégal, "
+                                         "offensif, diffamatoire, harcelant, menaçant ou autrement répréhensible.",
+                                   inline=False)
+    terms_and_conditions.add_field(name="4. Suspension de l'accès",
+                                   value="Le créateur du bot Discord se réserve le droit de suspendre votre accès à "
+                                         "ce bot si vous ne respectez pas les conditions d'utilisation.",
+                                   inline=False)
+    terms_and_conditions.add_field(name="5. Responsabilité d'OpenAI",
+                                   value="OpenAI n'est pas responsable des erreurs, des inexactitudes ou des dommages "
+                                         "causés par l'utilisation de ce bot.",
+                                   inline=False)
+    terms_and_conditions.add_field(
+        name="6. Respect des conditions d'utilisation et politique de confidentialité d'OpenAI",
+        value="Vous devez respecter les conditions d'utilisation et la politique de confidentialité d'OpenAI en "
+              "vigueur.",
+        inline=False)
+    terms_and_conditions.add_field(name="7. Modification des conditions d'utilisation",
+                                   value="Les conditions d'utilisation peuvent être modifiées à tout moment sans "
+                                         "préavis.",
+                                   inline=False)
+    terms_and_conditions.add_field(name="Acceptation des conditions d'utilisation",
+                                   value="L'utilisation de ce bot implique votre acceptation de ces conditions "
+                                         "d'utilisation.",
+                                   inline=False)
+
+    return terms_and_conditions
+
+
+# policy
+def Privacy_Policy() -> discord.Embed:
+    """
+    Privacy policy
+    :return: discord.Embed
+    """
+    # bot collect data
+
+    # 1. personal data -> identification data -> discord user id + username + server id + server
+    # name + channel id + channel name
+
+    # 2. personal data -> conversation history -> discord user id + discord channel id + message + response + timestamp
+    privacy_policy: discord.Embed = discord.Embed(title="Politique de confidentialité",
+                                                  description="Pour l'utilisation d'un bot Discord permettant "
+                                                              "de communiquer avec ChatGPT",
+                                                  color=discord.Color.red())
+    privacy_policy.add_field(name="1. Collecte de données :",
+                             value="",
+                             inline=False)
+    privacy_policy.add_field(name="1.1. Données d'identification",
+                             value="Le bot collecte les données d'identification suivantes : "
+                                   "identifiant utilisateur Discord, nom d'utilisateur Discord, identifiant du serveur "
+                                   "Discord, nom du serveur Discord, identifiant du canal Discord, nom du canal "
+                                   "Discord.",
+                             inline=False)
+    privacy_policy.add_field(name="1.2. Historique de conversation",
+                             value="Le bot collecte les données suivantes : identifiant utilisateur Discord, "
+                                   "identifiant du canal Discord, message, réponse, date et heure.",
+                             inline=False)
+    privacy_policy.add_field(name="2. Utilisation des données :",
+                             value="",
+                             inline=False)
+    privacy_policy.add_field(name="2.1. Utilisation personnelle",
+                             value="L'utilisation des données est destinée à un usage personnel uniquement.",
+                             inline=False)
+    privacy_policy.add_field(name="2.2. Amélioration du bot",
+                             value="Les données sont utilisées pour améliorer le bot.",
+                             inline=False)
+    privacy_policy.add_field(name="2.3. Partage des données",
+                             value="Les données collectées ne sont pas partagées.",
+                             inline=False)
+    privacy_policy.add_field(name="2.4. Suppression des données",
+                             value="Les données collectées sont supprimées après 1 an si vous n'utilisez pas le bot ",
+                             # "Les données collectées sont supprimées après 1 an.",
+                             inline=False)
+    privacy_policy.add_field(name="2.5. Modification de la politique de confidentialité",
+                             value="La politique de confidentialité peut être modifiée à tout moment sans préavis.",
+                             inline=False)
+    privacy_policy.add_field(name="2.6. Acceptation de la politique de confidentialité",
+                             value="L'utilisation de ce bot implique votre acceptation de cette politique de "
+                                   "confidentialité.",
+                             inline=False)
+    return privacy_policy
+
+
+def legacy() -> discord.Embed:
+    """
+    Create the legacy embed
+    :return:
+    """
+    terms_and_conditions: discord.Embed = Terms_and_Conditions()
+    privacy_policy: discord.Embed = Privacy_Policy()
+
+    terms_and_conditions_Dict: dict = terms_and_conditions.to_dict()
+    privacy_policy_Dict: dict = privacy_policy.to_dict()
+
+    terms_and_conditions_text: str = json.dumps(terms_and_conditions_Dict)
+    privacy_policy_text: str = json.dumps(privacy_policy_Dict)
+
+    # fusion of the two embeds
+    legacy: discord.Embed = discord.Embed(title="Conditions d'utilisation et politique de confidentialité",
+                                          description="",
+                                          color=discord.Color.red())
+    legacy.add_field(name="Conditions d'utilisation",
+                     value=terms_and_conditions_text,
+                     inline=False)
+    legacy.add_field(name="Politique de confidentialité",
+                     value=privacy_policy_text,
+                     inline=False)
+    return legacy
+
+
+# Bad words
+list_Bad_Words: List_Bad_Words = List_Bad_Words(json_file_links_bad_words="Data/JSON/Bad_Word.json")
+
+
 # Discord Client class
 class MyClient(discord.Client):
-
     async def channels_allowed_ID(self, discord_server_id) -> list:
         # Get the list of channels from the database
         myresult: list = RequestServerSQLFetch(request=
@@ -187,6 +326,8 @@ class MyClient(discord.Client):
         if message.author == self.user:
             return None
 
+        # message is a alone mention of the bot (without command)
+
         # verify if the user is in the database
         if RequestServerSQLFetchListList(request=existUser(discord_user_id=message.author.id))[0][0] == 0:
             RequestServerSQL(request=
@@ -205,9 +346,38 @@ class MyClient(discord.Client):
                                                 discord_user_id=message.author.id)
                              )
 
-        # Test command
-        if message.content.startswith(env_vars["PREFIX_COMMAND"] + "test") and await self.isAdmin(message):
-            await message.channel.send("test")
+        # hello command : message is alone mention of the bot (without command) or a command hello
+        if message.content == "<@" + str(self.user.id) + ">" or \
+                (message.content == env_vars["PREFIX_COMMAND"] + "hello" and await self.isAdmin(message)) or \
+                (message.content.startswith(env_vars["PREFIX_COMMAND"] + "hello") and await self.isAdmin(message)):
+            await message.reply("Bonjour !\n"
+                                "Pour avoir la liste des commandes, tapez `" + env_vars["PREFIX_COMMAND"] + "help`\n" +
+                                "Pour avoir les informations sur la politique de confidentialité, tapez `" +
+                                env_vars["PREFIX_COMMAND"] + "privacyPolicy`\n" +
+                                "Pour avoir les conditions générales d'utilisation, tapez `" +
+                                env_vars["PREFIX_COMMAND"] + "termsAndConditions`\n" +
+                                "Pour avoir les informations sur la politique de confidentialité et les conditions "
+                                "générales, tapez `" +
+                                env_vars["PREFIX_COMMAND"] + "legacy`",
+                                mention_author=False)
+            return None
+        # quit command
+        elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "quit") and await self.isAdmin(message):
+            await message.reply("Au revoir !")
+            await self.close()
+            return None
+        # privacy policy command
+        elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "privacyPolicy"):
+            await message.reply(embed=Privacy_Policy())
+            return None
+        # terms and conditions command
+        elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "termsAndConditions"):
+            await message.reply(embed=Terms_and_Conditions())
+            return None
+        # legacy command
+        elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "legacy"):
+            await message.reply(embed=legacy())
+            return None
         # List the channels command
         elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "listChannels"):
             result: str = "The list of channels is: "
@@ -215,7 +385,7 @@ class MyClient(discord.Client):
                 result += f"{channel}, "
             # Remove the last comma
             result = result[:-2]
-            await message.channel.send(result)
+            await message.reply(result)
         # Add a new channel command
         elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "addChannel") and await self.isAdmin(message):
             # Get the channel ID
@@ -224,7 +394,7 @@ class MyClient(discord.Client):
 
             channel: discord.TextChannel = self.get_channel(int(channel_id))
             if channel is None:
-                await message.channel.send(f"Channel {channel_id} not found.")
+                await message.reply(f"Channel {channel_id} not found.")
                 return
 
             # Add the channel to the list of allowed channels
@@ -235,7 +405,7 @@ class MyClient(discord.Client):
                              )
 
             # Confirm to the user that the channel was added
-            await message.channel.send(f"Channel {channel.name} added.")
+            await message.reply(f"Channel {channel.name} added.")
         # Remove a channel command
         elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "removeChannel") and await self.isAdmin(message):
             # Get the channel ID
@@ -244,19 +414,23 @@ class MyClient(discord.Client):
 
             channel: discord.TextChannel = self.get_channel(int(channel_id))
             if channel is None:
-                await message.channel.send(f"Channel {channel_id} not found.")
+                await message.reply(f"Channel {channel_id} not found.")
                 return
 
             # Remove the channel from the list of allowed channels
             RequestServerSQL(request=deleteChannel(discord_channel_id=channel.id))
 
             # Confirm to the user that the channel was removed
-            await message.channel.send(f"Channel {channel.name} removed.")
+            await message.reply(f"Channel {channel.name} removed.")
         # help command
         elif message.content.startswith(env_vars["PREFIX_COMMAND"] + "help"):
             result: str = "The list of commands is: "
             listCommande: list = [
-                {"command": "test", "description": "Test if the bot is working", "admin": True},
+                {"command": "hello", "description": "Say hello to the bot", "admin": False},
+                {"command": "quit", "description": "Quit the bot", "admin": True},
+                {"command": "privacyPolicy", "description": "Show the privacy policy", "admin": False},
+                {"command": "termsAndConditions", "description": "Show the terms and conditions", "admin": False},
+                {"command": "legacy", "description": "Show the legacy", "admin": False},
                 {"command": "listChannels", "description": "List all the channels where the bot can answer",
                  "admin": False},
                 {"command": "addChannel",
@@ -273,11 +447,16 @@ class MyClient(discord.Client):
                         result += f"\n{env_vars['PREFIX_COMMAND']}{commande['command']} : {commande['description']}"
                 else:
                     result += f"\n{env_vars['PREFIX_COMMAND']}{commande['command']} : {commande['description']}"
-            await message.channel.send(result)
+            await message.reply(result)
         # If the message is not a command
         else:
             # Check if the channel is allowed
             if message.channel.id in await self.channels_allowed_ID(message.guild.id):
+                # Check if the message contains a bad word
+                if list_Bad_Words.check_bad_words(message.content):
+                    await message.reply("Your message contains a bad word.")
+                    return None
+
                 # Use OpenAI to generate a response
                 try:
                     response: str = openai.Completion.create(
@@ -302,7 +481,7 @@ class MyClient(discord.Client):
                                  )
 
                 # Send the response back to Discord
-                await message.channel.send("Bot:\n" + response)
+                await message.reply("Bot:\n" + response)
 
         return None
 

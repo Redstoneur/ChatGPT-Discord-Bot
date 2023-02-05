@@ -3,3 +3,4 @@ asyncio~=3.4.3
 typing~=3.6.6
 mysql-connector-python~=8.0.26
 openai~=0.25.0
+langdetect~=1.0.9
